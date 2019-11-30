@@ -26,7 +26,7 @@ def resnet_block(inputs, num_filters=16, kernel_size=3, strides=1, activation='r
 
 def resnet_v1(input_shape):
     #input_shape should be (width,height,channel)
-    inputs = Input(shape=input_shape)  # Input层，用来当做占位使用
+    inputs = Input(shape=input_shape)
 
     dilation_rate = 1
     x = resnet_block(inputs, dilation_rate=dilation_rate)
@@ -76,7 +76,6 @@ def resnet_v1(input_shape):
 
     x = GlobalAveragePooling2D()(x)
     y = Flatten()(x)
-    # out:1024
     outputs = Dense(10, activation='softmax', kernel_initializer='he_normal')(y)
 
     model = Model(inputs=inputs, outputs=outputs)
