@@ -1,3 +1,11 @@
+## How to  use this code
+
+This repo requires **tensorflow-gpu-1.5.0** or other compatible version of tensorflow,
+
+you can run it simple by type 
+
+**python cifar10.py**
+
 ### Does CNN really need downsampling (upsampling)?
 
 In common convolutional neural networks, sampling is almost ubiquitous, formerly max_pooling, and now strided convolution.
@@ -15,13 +23,13 @@ Previously, we used fc in the last few layers of the classification network. Lat
 <center>GAP aggregates spatial features directly into a scalar</center>
 Since then, the paradigm of classification networks behaves like(Relu has been integrated into conv and deconv, without considering any shortcut),
 
-```python
+```
 Input-->Conv-->DownSample_x_2-->Conv-->DownSample_x_2-->Conv-->DownSample_x_2-->GAP-->Conv1x1-->Softmax-->Output
 ```
 
 And the paradigm of semantic segmentation network behaves like,
 
-```python
+```
 Input-->Conv-->DownSample_x_2-->Conv-->DownSample_x_2-->Conv-->DownSample_x_2-->Deconv_x_2-->Deconv_x_2-->Deconv_x_2-->Softmax-->Output
 ```
 
