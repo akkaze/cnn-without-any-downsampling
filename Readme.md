@@ -11,15 +11,15 @@ you can run it simple by type
 In common convolutional neural networks, sampling is almost ubiquitous, formerly max_pooling, and now strided convolution.
 Take the vgg network as an example, which uses quite a lot of max_pooling,
 
-![vgg](assets\vgg.png)
+![vgg](https://github.com/akkaze/cnn-without-any-downsampling/blob/master/assets/vgg.png)
 <center>The input side is below, you can see that a lot of 2x2 pooling is used in the network</center>
 Also, when doing semantic segmentation or object detection, we use quite a lot of upsampling, or transposed convolution.
 
-![fcn](assets\fcn.png)
+![fcn](https://github.com/akkaze/cnn-without-any-downsampling/blob/master/assets/fcn.png)
 <center>Typical fcn structure, pay attention to the decovolution distinguished by red</center>
 Previously, we used fc in the last few layers of the classification network. Later, fc was proved to have too many parameters and poor generalization performance. It was replaced by global average pooling and it first appeared in network in network.
 
-![gap](assets\gap.jpg)
+![gap](https://github.com/akkaze/cnn-without-any-downsampling/blob/master/assets/gap.jpg)
 <center>GAP aggregates spatial features directly into a scalar</center>
 Since then, the paradigm of classification networks behaves like(Relu has been integrated into conv and deconv, without considering any shortcut),
 
@@ -89,7 +89,7 @@ After 80 rounds of training, the following classification results were finally o
 
 The accuracy curve on validation dataset is shown below,
 
-![acc](assets\acc.png)
+![acc](https://github.com/akkaze/cnn-without-any-downsampling/blob/master/assets/acc.png)
 
 The final accuracy rate reached 76%. The accuracy rate of a convolutional network with vgg structure with the same parameters is basically around this.
 
