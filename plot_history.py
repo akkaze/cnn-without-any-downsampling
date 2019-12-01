@@ -38,7 +38,8 @@ def round_up_by(data, factor):
     return float(math.ceil(data / factor)) * factor / 1000.
 
 
-def plot_history(history_data):
+def plot_history(history_file):
+    history_data = parse_history(history_file)
     plt.xlabel('epoch', fontsize=14)
     plt.ylabel('validation_acc', fontsize=14)
     plt.plot(history_data['epoch'],
@@ -66,6 +67,42 @@ def plot_history(history_data):
     plt.show()
 
 
-history_data = parse_history('cifar10_resnet_validation.csv')
-plot_history(history_data)
+def plot_histories(history_files):
+    history_datas = []
+    plt.xlabel('epoch', fontsize=14)
+    plt.ylabel('validation_acc', fontsize=14)
+    linestyles = ['-', '--', '-.']
+    colors = ['b', 'g', 'r']
+    markers = ['+', '.', '*']
+    acc_min, acc_max = 1., 0.
+    for i, history_file in enumerate(history_files):
+        name = history_file.split('.')[0]
+        label = '_'.join(name.split('_')[2:-1])
+        print(label)
+        history_data = parse_history(history_file)
+        acc = history_data['acc']
+        plt.plot(history_data['epoch'],
+                 acc,
+                 color=colors[i],
+                 linewidth=1,
+                 linestyle=linestyles[i],
+                 label=label,
+                 marker=markers[i])
+        acc_min_tmp, acc_max_tmp = np.amin(acc), np.amax(acc)
+        acc_min = min(acc_min, acc_min_tmp)
+        acc_max = max(acc_max, acc_max_tmp)
+        factor = 0.05
+    acc_min = round_down_by(acc_min, factor)
+    acc_max = round_up_by(acc_max, factor)
+    plt.yticks(np.arange(acc_min, acc_max + factor, factor))
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+plot_histories([
+    'cifar10_vgg_downsample_validation.csv', 'cifar10_vgg_large_kernel_validation.csv',
+    'cifar10_vgg_dilation_validation.csv'
+])
+# plot_history('cifar10_vgg_downsample_validation.csv')
 #pprint(history_data)

@@ -24,12 +24,13 @@ def resnet_block(inputs, num_filters=16, kernel_size=3, strides=1, activation='r
     return x
 
 
-def resnet_v1(input_shape):
+def resnet_v1(input_shape, num_classes=10, use_downsampling=False):
     #input_shape should be (width,height,channel)
     inputs = Input(shape=input_shape)
 
     dilation_rate = 1
-    x = resnet_block(inputs, dilation_rate=dilation_rate)
+    strides = 1
+    x = resnet_block(inputs, dilation_rate=dilation_rate, strides=strides)
     for i in range(6):
         a = resnet_block(inputs=x, dilation_rate=dilation_rate)
         b = resnet_block(inputs=a, activation=None, dilation_rate=dilation_rate)
@@ -38,16 +39,22 @@ def resnet_v1(input_shape):
 
     for i in range(6):
         if i == 0:
-            dilation_rate *= 2
-            a = resnet_block(inputs=x, num_filters=32, dilation_rate=dilation_rate)
+            if not use_downsampling:
+                dilation_rate *= 2
+            else:
+                strides = 2
+            a = resnet_block(inputs=x, num_filters=32, dilation_rate=dilation_rate, strides=strides)
         else:
             a = resnet_block(inputs=x, num_filters=32, dilation_rate=dilation_rate)
         b = resnet_block(inputs=a, activation=None, num_filters=32)
         if i == 0:
-            dilation_rate *= 2
+            if not use_downsampling:
+                dilation_rate *= 2
+            else:
+                strides = 2
             x = Conv2D(32,
                        kernel_size=3,
-                       strides=1,
+                       strides=strides,
                        padding='same',
                        dilation_rate=dilation_rate,
                        kernel_initializer='he_normal',
@@ -57,16 +64,23 @@ def resnet_v1(input_shape):
 
     for i in range(6):
         if i == 0:
-            dilation_rate *= 2
-            a = resnet_block(inputs=x, strides=1, dilation_rate=dilation_rate, num_filters=64)
+            if not use_downsampling:
+                dilation_rate *= 2
+            else:
+                strides = 2
+            a = resnet_block(inputs=x, strides=strides, dilation_rate=dilation_rate, num_filters=64)
         else:
             a = resnet_block(inputs=x, num_filters=64, dilation_rate=dilation_rate)
 
         b = resnet_block(inputs=a, activation=None, num_filters=64, dilation_rate=dilation_rate)
         if i == 0:
+            if not use_downsampling:
+                dilation_rate *= 2
+            else:
+                strides = 2
             x = Conv2D(64,
                        kernel_size=3,
-                       strides=1,
+                       strides=strides,
                        padding='same',
                        dilation_rate=dilation_rate,
                        kernel_initializer='he_normal',
@@ -76,7 +90,7 @@ def resnet_v1(input_shape):
 
     x = GlobalAveragePooling2D()(x)
     y = Flatten()(x)
-    outputs = Dense(10, activation='softmax', kernel_initializer='he_normal')(y)
+    outputs = Dense(num_classes, activation='softmax', kernel_initializer='he_normal')(y)
 
     model = Model(inputs=inputs, outputs=outputs)
     return model
