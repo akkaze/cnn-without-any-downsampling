@@ -13,10 +13,11 @@ from vgg import vgg
 config = {
     'batch_size': 32,
     'epochs': 100,
-    'backbone': 'vgg',
+    'backbone': 'resnet',
     'num_classes': 10,
     'num_predictions': 20,
     'data_augmentation': True,
+    'use_downsampling': True,
 }
 
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -32,8 +33,7 @@ x_test = x_test.astype('float32')
 x_train /= 255
 x_test /= 255
 
-#model = resnet_v1(x_train.shape[1:])
-model = vgg(x_train.shape[1:], config['num_classes'], True)
+model = resnet_v1(x_train.shape[1:], num_classes=config['num_classes'], use_downsampling=config['use_downsampling'])
 model.summary()
 model.save(model_name + '.h5')
 # initiate Adam optimizer
