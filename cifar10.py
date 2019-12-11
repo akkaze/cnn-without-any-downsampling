@@ -2,17 +2,17 @@ from __future__ import print_function
 from tensorflow import keras
 from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import CSVLogger
 import os
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 import sys
 sys.path.append(os.path.dirname(__file__))
 from resnet18 import resnet_v1
-from vgg import vgg
+from vgg import vgg, vgg_3x3, vgg_3x3_v2, vgg_3x3_v3
 
 config = {
     'batch_size': 32,
-    'epochs': 100,
+    'epochs': 90,
     'backbone': 'resnet',
     'num_classes': 10,
     'num_predictions': 20,
@@ -33,7 +33,8 @@ x_test = x_test.astype('float32')
 x_train /= 255
 x_test /= 255
 
-model = resnet_v1(x_train.shape[1:], num_classes=config['num_classes'], use_downsampling=config['use_downsampling'])
+# model = resnet_v1(x_train.shape[1:], num_classes=config['num_classes'], use_downsampling=config['use_downsampling'])
+model = vgg(x_train.shape[1:], num_classes=config['num_classes'])
 model.summary()
 model.save(model_name + '.h5')
 # initiate Adam optimizer
@@ -41,8 +42,7 @@ opt = keras.optimizers.Adam(learning_rate=0.001, decay=1e-5)
 
 model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
-tensorboard = TensorBoard(log_dir='logs/{}'.format(model_name))
-
+csv_logger = CSVLogger('training.csv')
 if not config['data_augmentation']:
     print('Not using data augmentation.')
     model.fit(x_train,
@@ -91,17 +91,17 @@ else:
     model.fit_generator(datagen.flow(x_train, y_train, batch_size=config['batch_size']),
                         epochs=config['epochs'],
                         steps_per_epoch=1000,
-                        callbacks=[tensorboard],
+                        callbacks=[csv_logger],
                         validation_data=(x_test, y_test))
 
 # Save model and weights
-if not os.path.isdir(save_dir):
-    os.makedirs(save_dir)
-model_path = os.path.join(save_dir, model_name)
-model.save(model_path)
-print('Saved trained model at %s ' % model_path)
+# if not os.path.isdir(save_dir):
+#     os.makedirs(save_dir)
+# model_path = os.path.join(save_dir, model_name)
+# model.save(model_path)
+# print('Saved trained model at %s ' % model_path)
 
 # Score trained model.
-scores = model.evaluate(x_test, y_test, verbose=1)
-print('Test loss:', scores[0])
-print('Test accuracy:', scores[1])
+# scores = model.evaluate(x_test, y_test, verbose=1)
+# print('Test loss:', scores[0])
+# print('Test accuracy:', scores[1])
