@@ -18,16 +18,16 @@ from vgg import vgg, vgg_3x3, vgg_dep_wise_3x3
 
 config = {
     'batch_size': 32,
-    'epochs': 90,
+    'epochs': 1000,
     'backbone': 'vgg',
     'num_classes': 10,
     'num_predictions': 20,
     'data_augmentation': True,
     'use_downsampling': True,
     'pruning': True,
-    'pruning_sparsity': 0.8,
-    'pruning_freq': 50,
-    'pruning_begin_epoch': 90,
+    'pruning_sparsity': 0.25,
+    'pruning_freq': 20,
+    'pruning_begin_epoch': 200,
 }
 
 save_dir = os.path.join(os.getcwd(), 'saved_models')
