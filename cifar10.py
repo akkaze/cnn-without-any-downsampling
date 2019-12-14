@@ -5,19 +5,29 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import CSVLogger
 import os
 from tensorflow.keras.callbacks import ReduceLROnPlateau
+from tensorflow_model_optimization.python.core.sparsity.keras import prune
+from tensorflow_model_optimization.python.core.sparsity.keras import pruning_callbacks
+from tensorflow_model_optimization.python.core.sparsity.keras import pruning_schedule
+
+ConstantSparsity = pruning_schedule.ConstantSparsity
 import sys
+import math
 sys.path.append(os.path.dirname(__file__))
 from resnet18 import resnet_v1
-from vgg import vgg, vgg_3x3, vgg_3x3_v2, vgg_3x3_v3
+from vgg import vgg, vgg_3x3, vgg_dep_wise_3x3
 
 config = {
     'batch_size': 32,
     'epochs': 90,
-    'backbone': 'resnet',
+    'backbone': 'vgg',
     'num_classes': 10,
     'num_predictions': 20,
     'data_augmentation': True,
     'use_downsampling': True,
+    'pruning': True,
+    'pruning_sparsity': 0.8,
+    'pruning_freq': 50,
+    'pruning_begin_epoch': 90,
 }
 
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -34,15 +44,29 @@ x_train /= 255
 x_test /= 255
 
 # model = resnet_v1(x_train.shape[1:], num_classes=config['num_classes'], use_downsampling=config['use_downsampling'])
-model = vgg(x_train.shape[1:], num_classes=config['num_classes'])
+model = vgg_3x3(x_train.shape[1:], num_classes=config['num_classes'])
 model.summary()
 model.save(model_name + '.h5')
 # initiate Adam optimizer
 opt = keras.optimizers.Adam(learning_rate=0.001, decay=1e-5)
+pruning_params = {
+    'pruning_schedule':
+    ConstantSparsity(config['pruning_sparsity'],
+                     begin_step=math.ceil(
+                         float(x_train.shape[0]) * config['pruning_begin_epoch'] / config['batch_size']),
+                     frequency=config['pruning_freq'])
+}
 
+if config['pruning']:
+    model = prune.prune_low_magnitude(model, **pruning_params)
 model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
 csv_logger = CSVLogger('training.csv')
+callbacks = [csv_logger]
+if config['pruning']:
+    callbacks.append(pruning_callbacks.UpdatePruningStep())
+    callbacks.append(pruning_callbacks.PruningSummaries(log_dir='log'))
+
 if not config['data_augmentation']:
     print('Not using data augmentation.')
     model.fit(x_train,
@@ -91,7 +115,7 @@ else:
     model.fit_generator(datagen.flow(x_train, y_train, batch_size=config['batch_size']),
                         epochs=config['epochs'],
                         steps_per_epoch=1000,
-                        callbacks=[csv_logger],
+                        callbacks=callbacks,
                         validation_data=(x_test, y_test))
 
 # Save model and weights
